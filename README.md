@@ -101,3 +101,7 @@ swift run blipsy --screenshots docs           # regenerate the screenshots
 ## Reporting issues
 
 Found a bug or have an idea? **[Open an issue](https://github.com/moharnadreza/blipsy/issues).**
+
+## Acknowledgements
+
+Inspired by [gnome-online-indicator](https://github.com/maryayi/gnome-online-indicator) by [@maryayi](https://github.com/maryayi), which sparked the idea for blipsy.
