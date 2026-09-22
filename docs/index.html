@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>blipsy — your internet connection, at a glance</title>
+<meta name="description" content="A quiet macOS menu bar app that shows your internet connection: green, yellow, or red, with latency, packet loss, and a past-hour uptime timeline." />
+<meta property="og:title" content="blipsy" />
+<meta property="og:description" content="A quiet macOS menu bar app that shows your internet connection at a glance." />
+<meta property="og:image" content="https://moharnadreza.github.io/blipsy/social.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  :root{
+    --bg:#0d1017; --bg2:#141a26; --ink:#f3f5f8; --muted:#9aa4b2; --line:#232b3a;
+    --green:#34C759; --yellow:#FFCC00; --red:#FF3B30; --card:#ffffff;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; color:var(--ink);
+    background:
+      radial-gradient(720px 460px at 12% 108%, rgba(52,199,89,0.20), transparent 60%),
+      linear-gradient(160deg, #0d1017 0%, #141a26 100%);
+    background-attachment:fixed;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Segoe UI,sans-serif;
+    line-height:1.55; letter-spacing:-0.01em; -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:72px 24px 64px;}
+  .mark{
+    width:76px; height:76px; border-radius:18px;
+    background:linear-gradient(180deg,#fafbfc,#e6e9ee);
+    display:grid; place-items:center; box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  .dot{
+    width:42px; height:42px; border-radius:50%;
+    background:radial-gradient(circle at 38% 34%, #93efac, #34C759 55%, #1f9d43 100%);
+    box-shadow:inset 0 -2px 6px rgba(0,0,0,.15);
+  }
+  h1{font-size:clamp(44px,7vw,72px); font-weight:800; letter-spacing:-0.04em; margin:24px 0 8px; line-height:1;}
+  h1 .p{color:var(--green);}
+  .lede{font-size:clamp(18px,2.4vw,22px); color:var(--muted); margin:0; max-width:38ch;}
+  .states{display:flex; gap:20px; flex-wrap:wrap; margin:22px 0 0; color:var(--muted); font-size:15px;}
+  .states span{display:inline-flex; align-items:center; gap:8px;}
+  .states i{width:11px; height:11px; border-radius:50%; display:inline-block;}
+
+  .cta{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin:34px 0 10px;}
+  .btn{
+    display:inline-flex; align-items:center; gap:10px;
+    background:var(--green); color:#04240f; font-weight:640; font-size:17px;
+    padding:14px 22px; border-radius:12px; text-decoration:none;
+    box-shadow:0 8px 24px rgba(52,199,89,.32); transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 12px 30px rgba(52,199,89,.42);}
+  .btn:focus-visible{outline:3px solid #bff5cd; outline-offset:2px;}
+  .meta{color:var(--muted); font-size:14px;}
+  .meta b{color:var(--ink); font-weight:600;}
+
+  .brew{margin-top:26px;}
+  .brew .label{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-bottom:8px;}
+  .code{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:#0a0d13; border:1px solid var(--line); border-radius:10px;
+    padding:12px 14px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:14px;
+    color:#dfe4ec; max-width:520px;
+  }
+  .code button{
+    background:transparent; border:1px solid var(--line); color:var(--muted);
+    border-radius:7px; padding:5px 10px; font:inherit; font-size:12px; cursor:pointer;
+  }
+  .code button:hover{color:var(--ink); border-color:#3a4657;}
+
+  .shot{margin:56px 0 0;}
+  .shot img{width:100%; height:auto; border-radius:16px; box-shadow:0 2px 6px rgba(0,0,0,.3), 0 30px 70px rgba(0,0,0,.45); display:block;}
+
+  footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; display:flex; gap:20px; flex-wrap:wrap; align-items:center;}
+  footer a{color:var(--muted); text-decoration:none;}
+  footer a:hover{color:var(--ink);}
+  footer .spacer{flex:1;}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="mark"><span class="dot"></span></div>
+
+    <h1>blipsy<span class="p">.</span></h1>
+    <p class="lede">A quiet macOS menu bar app that tells you the truth about your internet connection.</p>
+
+    <div class="states">
+      <span><i style="background:var(--green)"></i> Connected</span>
+      <span><i style="background:var(--yellow)"></i> Packet loss</span>
+      <span><i style="background:var(--red)"></i> Down</span>
+    </div>
+
+    <div class="cta">
+      <a class="btn" href="https://github.com/moharnadreza/blipsy/releases/latest/download/blipsy.dmg">
+        Download for macOS
+      </a>
+      <span class="meta"><b id="ver">v0.1.1</b> · macOS 13+ · free</span>
+    </div>
+
+    <div class="brew">
+      <div class="label">or install with Homebrew</div>
+      <div class="code">
+        <span id="brewcmd">brew install --cask moharnadreza/tap/blipsy</span>
+        <button id="copy" aria-label="Copy command">Copy</button>
+      </div>
+    </div>
+
+    <div class="shot">
+      <img src="glance.png" alt="blipsy in the macOS menu bar with its panel open, showing latency, packet loss, and a past-hour uptime timeline" />
+    </div>
+
+    <footer>
+      <a href="https://github.com/moharnadreza/blipsy">View on GitHub</a>
+      <a href="https://github.com/moharnadreza/blipsy/issues">Report an issue</a>
+      <span class="spacer"></span>
+      <a href="https://github.com/moharnadreza">Made by @moharnadreza</a>
+    </footer>
+  </main>
+
+  <script>
+    // Show the latest published version (falls back to the static label).
+    fetch("https://api.github.com/repos/moharnadreza/blipsy/releases/latest")
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ if (d && d.tag_name) { document.getElementById("ver").textContent = d.tag_name; } })
+      .catch(function(){});
+
+    // Copy the Homebrew command.
+    document.getElementById("copy").addEventListener("click", function(){
+      var cmd = document.getElementById("brewcmd").textContent;
+      navigator.clipboard.writeText(cmd).then(function(){
+        var b = document.getElementById("copy"); b.textContent = "Copied"; setTimeout(function(){ b.textContent = "Copy"; }, 1400);
+      });
+    });
+  </script>
+</body>
+</html>
