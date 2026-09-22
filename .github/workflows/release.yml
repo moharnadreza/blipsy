@@ -28,4 +28,4 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" build/blipsy.dmg \
             --title "blipsy ${GITHUB_REF_NAME}" \
-            --generate-notes
+            --notes-from-tag
