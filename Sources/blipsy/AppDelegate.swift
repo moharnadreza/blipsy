@@ -11,7 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var statusItem: NSStatusItem!
     private var panel: NSPanel!
-    private var hostingView: NSHostingView<MenuPanelView>!
+    private var hostingView: NSHostingView<AnyView>!
     private var clickMonitor: Any?
     private var settingsWindow: NSWindowController?
     private var aboutWindow: NSWindowController?
@@ -61,35 +61,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Panel
 
     private func buildPanel() {
-        hostingView = NSHostingView(rootView: MenuPanelView(
+        // Material + rounding done inside SwiftUI and clipped, so everything
+        // outside the rounded shape is transparent (no white window backing).
+        let content = MenuPanelView(
             model: model,
             onSettings: { [weak self] in self?.openSettings() },
             onAbout: { [weak self] in self?.openAbout() },
-            onQuit: { NSApp.terminate(nil) }))
+            onQuit: { NSApp.terminate(nil) })
+            .background(VisualEffectBackground())
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-        // Native menu material + rounded corners behind the SwiftUI content.
-        let visual = NSVisualEffectView()
-        visual.material = .menu
-        visual.blendingMode = .behindWindow
-        visual.state = .active
-        visual.wantsLayer = true
-        visual.layer?.cornerRadius = 10
-        visual.layer?.cornerCurve = .continuous
-        visual.layer?.masksToBounds = true
-
-        hostingView.translatesAutoresizingMaskIntoConstraints = false
-        visual.addSubview(hostingView)
-        NSLayoutConstraint.activate([
-            hostingView.leadingAnchor.constraint(equalTo: visual.leadingAnchor),
-            hostingView.trailingAnchor.constraint(equalTo: visual.trailingAnchor),
-            hostingView.topAnchor.constraint(equalTo: visual.topAnchor),
-            hostingView.bottomAnchor.constraint(equalTo: visual.bottomAnchor),
-        ])
+        hostingView = NSHostingView(rootView: AnyView(content))
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = .clear
 
         panel = NSPanel(contentRect: .zero,
                         styleMask: [.borderless, .nonactivatingPanel],
                         backing: .buffered, defer: false)
-        panel.contentView = visual
+        panel.contentView = hostingView
         panel.isMovable = false
         panel.isOpaque = false
         panel.backgroundColor = .clear
