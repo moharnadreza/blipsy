@@ -34,6 +34,9 @@ enum Screenshots {
         // Hero: a desktop with the menu bar and the panel dropped open beneath the icon.
         save(glanceView(single), to: "\(directory)/glance.png")
 
+        // 1280x640 social preview card for GitHub.
+        save(socialCard(single), to: "\(directory)/social.png")
+
         // Multi-target panel (rows + chart), showing a flaky one.
         let multi = AppModel()
         multi.loadPreview(statuses: [
@@ -108,6 +111,72 @@ enum Screenshots {
         .frame(height: 28)
         .background(Color.white.opacity(0.82))
         .foregroundStyle(.black.opacity(0.82))
+    }
+
+    // MARK: - Social preview card (1280x640)
+
+    private static func socialCard(_ model: AppModel) -> some View {
+        ZStack {
+            LinearGradient(colors: [Color(red: 0.06, green: 0.08, blue: 0.12),
+                                    Color(red: 0.10, green: 0.13, blue: 0.20)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+                .overlay(RadialGradient(
+                    colors: [Color(nsColor: .systemGreen).opacity(0.26), .clear],
+                    center: .init(x: 0.12, y: 1.05), startRadius: 0, endRadius: 560))
+
+            HStack(spacing: 40) {
+                VStack(alignment: .leading, spacing: 20) {
+                    appMark
+                    Text("blipsy")
+                        .font(.system(size: 76, weight: .bold))
+                        .foregroundStyle(.white)
+                    Text("Your internet connection, at a glance.")
+                        .font(.system(size: 25))
+                        .foregroundStyle(.white.opacity(0.72))
+                    HStack(spacing: 22) {
+                        legend(Color(nsColor: .systemGreen), "Connected")
+                        legend(Color(nsColor: .systemYellow), "Packet loss")
+                        legend(Color(nsColor: .systemRed), "Down")
+                    }
+                    .padding(.top, 6)
+                }
+                Spacer(minLength: 20)
+                MenuPanelView(model: model, onSettings: {}, onAbout: {}, onQuit: {})
+                    .background(Color(nsColor: .windowBackgroundColor))
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(Color.black.opacity(0.10)))
+                    .shadow(color: .black.opacity(0.5), radius: 34, y: 18)
+            }
+            .padding(.horizontal, 76)
+            .padding(.vertical, 56)
+        }
+        .frame(width: 1280, height: 640)
+    }
+
+    private static var appMark: some View {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(LinearGradient(colors: [Color(white: 0.98), Color(white: 0.9)],
+                                 startPoint: .top, endPoint: .bottom))
+            .frame(width: 88, height: 88)
+            .overlay(
+                Circle()
+                    .fill(RadialGradient(
+                        colors: [Color(red: 0.55, green: 0.93, blue: 0.66),
+                                 Color(nsColor: .systemGreen),
+                                 Color(red: 0.12, green: 0.6, blue: 0.26)],
+                        center: .init(x: 0.38, y: 0.34), startRadius: 2, endRadius: 46))
+                    .frame(width: 50, height: 50)
+                    .overlay(Ellipse().fill(.white.opacity(0.4)).frame(width: 24, height: 13).offset(y: -7))
+            )
+            .shadow(color: .black.opacity(0.35), radius: 10, y: 5)
+    }
+
+    private static func legend(_ color: Color, _ label: String) -> some View {
+        HStack(spacing: 8) {
+            Circle().fill(color).frame(width: 12, height: 12)
+            Text(label).font(.system(size: 17)).foregroundStyle(.white.opacity(0.85))
+        }
     }
 
     // MARK: - Static previews (no AppKit-backed controls)
