@@ -63,7 +63,16 @@ uptime.
 
 ## Install
 
-No technical setup needed.
+### Homebrew
+
+```sh
+brew install --cask moharnadreza/tap/blipsy
+```
+
+blipsy is unsigned, so on first launch right-click it in Applications and choose
+**Open** (once). To skip that prompt entirely, add `--no-quarantine` to the command above.
+
+### Direct download
 
 1. Open the [**Releases**](https://github.com/moharnadreza/blipsy/releases) page and download the latest **blipsy.dmg**.
 2. Double-click the downloaded file. A small window opens.
