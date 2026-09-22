@@ -116,7 +116,8 @@ enum Screenshots {
     // MARK: - Social preview card (1280x640)
 
     private static func socialCard(_ model: AppModel) -> some View {
-        ZStack {
+        ZStack(alignment: .top) {
+            // Desktop wallpaper.
             LinearGradient(colors: [Color(red: 0.06, green: 0.08, blue: 0.12),
                                     Color(red: 0.10, green: 0.13, blue: 0.20)],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -124,32 +125,42 @@ enum Screenshots {
                     colors: [Color(nsColor: .systemGreen).opacity(0.26), .clear],
                     center: .init(x: 0.12, y: 1.05), startRadius: 0, endRadius: 560))
 
-            HStack(spacing: 40) {
-                VStack(alignment: .leading, spacing: 20) {
-                    appMark
-                    Text("blipsy")
-                        .font(.system(size: 76, weight: .bold))
-                        .foregroundStyle(.white)
-                    Text("Your internet connection, at a glance.")
-                        .font(.system(size: 25))
-                        .foregroundStyle(.white.opacity(0.72))
-                    HStack(spacing: 22) {
-                        legend(Color(nsColor: .systemGreen), "Connected")
-                        legend(Color(nsColor: .systemYellow), "Packet loss")
-                        legend(Color(nsColor: .systemRed), "Down")
+            VStack(spacing: 0) {
+                // The macOS menu bar with the blipsy item highlighted.
+                menuBar
+                HStack(alignment: .top, spacing: 40) {
+                    VStack(alignment: .leading, spacing: 18) {
+                        appMark
+                        Text("blipsy")
+                            .font(.system(size: 72, weight: .bold))
+                            .foregroundStyle(.white)
+                        Text("Up, flaky, or down, right in your menu bar.")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.white.opacity(0.72))
+                        HStack(spacing: 22) {
+                            legend(Color(nsColor: .systemGreen), "Connected")
+                            legend(Color(nsColor: .systemYellow), "Packet loss")
+                            legend(Color(nsColor: .systemRed), "Down")
+                        }
+                        .padding(.top, 6)
                     }
-                    .padding(.top, 6)
+                    .padding(.leading, 76)
+                    .padding(.top, 64)
+
+                    Spacer(minLength: 20)
+
+                    // Panel dropped open from the menu bar item on the right.
+                    MenuPanelView(model: model, onSettings: {}, onAbout: {}, onQuit: {})
+                        .background(Color(nsColor: .windowBackgroundColor))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(Color.black.opacity(0.10)))
+                        .shadow(color: .black.opacity(0.5), radius: 34, y: 18)
+                        .padding(.top, 12)
+                        .padding(.trailing, 44)
                 }
-                Spacer(minLength: 20)
-                MenuPanelView(model: model, onSettings: {}, onAbout: {}, onQuit: {})
-                    .background(Color(nsColor: .windowBackgroundColor))
-                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(Color.black.opacity(0.10)))
-                    .shadow(color: .black.opacity(0.5), radius: 34, y: 18)
+                Spacer()
             }
-            .padding(.horizontal, 76)
-            .padding(.vertical, 56)
         }
         .frame(width: 1280, height: 640)
     }
