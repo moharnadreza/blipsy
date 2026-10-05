@@ -16,7 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0        # fetch tags with their annotations for --notes-from-tag
+          fetch-depth: 0
+          fetch-tags: true       # fetch annotated tag objects so we can read their message
 
       - name: Show toolchain
         run: swift --version
@@ -28,6 +29,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Use the annotated tag's message as the changelog. `--notes-from-tag`
+          # proved unreliable on the runner, so read it explicitly.
+          NOTES="$(git tag -l --format='%(contents)' "${GITHUB_REF_NAME}")"
+          [ -z "$NOTES" ] && NOTES="See the commit history for changes."
           gh release create "${GITHUB_REF_NAME}" build/blipsy.dmg \
             --title "blipsy ${GITHUB_REF_NAME}" \
-            --notes-from-tag
+            --notes "$NOTES"
