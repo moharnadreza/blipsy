@@ -30,20 +30,25 @@ protocol ReachabilityProbe: Sendable {
 struct HTTPProbe: ReachabilityProbe {
     let url: URL
 
+    // One shared session for all probes. Creating a URLSession per probe and not
+    // invalidating it leaks the session until the process exits, which crashes the
+    // app after hours of probing.
+    private static let session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.waitsForConnectivity = false
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        return URLSession(configuration: config)
+    }()
+
     func probeOnce(timeout: Double) async -> ProbeResult {
         var request = URLRequest(url: url)
         request.httpMethod = "HEAD"
         request.timeoutInterval = timeout
         request.cachePolicy = .reloadIgnoringLocalCacheData
 
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = timeout
-        config.waitsForConnectivity = false
-        let session = URLSession(configuration: config)
-
         let start = DispatchTime.now()
         do {
-            let (_, _) = try await session.data(for: request)
+            _ = try await Self.session.data(for: request)
             let rtt = Double(DispatchTime.now().uptimeNanoseconds - start.uptimeNanoseconds) / 1_000_000_000
             return ProbeResult(success: true, rtt: rtt)
         } catch {
@@ -94,6 +99,10 @@ struct TLSProbe: ReachabilityProbe {
             let guardOnce = ResumeGuard()
             func finish(_ result: ProbeResult) {
                 guard guardOnce.claim() else { return }
+                // Break the connection -> handler -> finish -> connection retain
+                // cycle, otherwise every probe leaks an NWConnection and the app
+                // crashes after hours (this path runs each cycle when ICMP is blocked).
+                connection.stateUpdateHandler = nil
                 connection.cancel()
                 continuation.resume(returning: result)
             }
