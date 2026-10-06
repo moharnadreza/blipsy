@@ -59,6 +59,30 @@ enum TestRunner {
         eq("lossy", detailText(status(.lossy, 140.0, 0.6)), "140 ms · 60% loss")
         eq("checking", detailText(status(.unknown, nil, 0)), "checking…")
 
+        group("Outage history derivation")
+        let t0 = Date(timeIntervalSince1970: 1_700_000_000)
+        func at(_ s: Double) -> Date { t0.addingTimeInterval(s) }
+        let now = at(1000)
+        // connected -> down(100s) -> connected -> lossy(50s) -> connected
+        let events = [
+            StatusEvent(date: at(0), state: .connected),
+            StatusEvent(date: at(100), state: .down),
+            StatusEvent(date: at(200), state: .connected),
+            StatusEvent(date: at(300), state: .lossy),
+            StatusEvent(date: at(350), state: .connected),
+        ]
+        let outages = Outage.derive(from: events, now: now)
+        eq("two outages derived", outages.count, 2)
+        eq("newest first (lossy)", outages.first?.state, .lossy)
+        eq("down duration 100s", outages.first(where: { $0.state == .down })?.duration(now: now) ?? -1, 100)
+        eq("lossy duration 50s", outages.first(where: { $0.state == .lossy })?.duration(now: now) ?? -1, 50)
+        ok("no ongoing outage", outages.allSatisfy { !$0.isOngoing })
+        // ongoing: last event is down
+        let ongoing = Outage.derive(from: [StatusEvent(date: at(900), state: .down)], now: now)
+        ok("ongoing outage open-ended", ongoing.first?.isOngoing == true)
+        eq("ongoing duration to now (100s)", ongoing.first?.duration(now: now) ?? -1, 100)
+        ok("all-connected has no outages", Outage.derive(from: [StatusEvent(date: at(0), state: .connected)], now: now).isEmpty)
+
         // Async: the probe → summary pipeline, driven by a deterministic mock.
         group("Measurement pipeline (mock probe)")
         let semaphore = DispatchSemaphore(value: 0)

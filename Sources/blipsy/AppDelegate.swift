@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var clickMonitor: Any?
     private var settingsWindow: NSWindowController?
     private var aboutWindow: NSWindowController?
+    private var historyWindow: NSWindowController?
     private var previousState: ConnectionState = .unknown
 
     /// Gap between the menu bar and the top of the panel.
@@ -35,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         buildPanel()
-        installEditMenu()
+        installMainMenu()
         requestNotificationAuthorization()
 
         model.onUpdate = { [weak self] state, statuses in
@@ -67,6 +68,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             model: model,
             onSettings: { [weak self] in self?.openSettings() },
             onAbout: { [weak self] in self?.openAbout() },
+            onHistory: { [weak self] in self?.openHistory() },
             onQuit: { NSApp.terminate(nil) })
             .background(VisualEffectBackground())
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -88,10 +90,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
     }
 
-    /// blipsy is a menu-bar agent with no visible menu bar, but text fields (in
-    /// Settings) need an Edit menu for Cmd+A/C/V/X/Z to work. This menu stays
-    /// hidden for an accessory app; it only supplies those key equivalents.
-    private func installEditMenu() {
+    /// blipsy is a menu-bar agent with no visible menu bar, but its windows still
+    /// need the standard key equivalents: Cmd+Q to quit, Cmd+W to close the focused
+    /// window, and Cmd+A/C/V/X/Z in text fields. This menu stays hidden; it only
+    /// supplies those shortcuts.
+    private func installMainMenu() {
         let mainMenu = NSMenu()
 
         let appItem = NSMenuItem()
@@ -112,7 +115,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = editMenu
 
+        let windowItem = NSMenuItem()
+        mainMenu.addItem(windowItem)
+        let windowMenu = NSMenu(title: "Window")
+        windowMenu.addItem(withTitle: "Close", action: #selector(NSWindow.performClose(_:)), keyEquivalent: "w")
+        windowMenu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        windowItem.submenu = windowMenu
+
         NSApp.mainMenu = mainMenu
+        NSApp.windowsMenu = windowMenu
     }
 
     @objc private func togglePanel() {
@@ -201,12 +212,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let window = NSWindow(contentViewController: host)
             window.title = "blipsy Settings"
             window.styleMask = [.titled, .closable]
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
+            window.isMovableByWindowBackground = true
             window.isReleasedWhenClosed = false
             settingsWindow = NSWindowController(window: window)
         }
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.window?.center()
         settingsWindow?.showWindow(nil)
+    }
+
+    @objc private func openHistory() {
+        closePanel()
+        if historyWindow == nil {
+            let host = NSHostingController(rootView: OutageHistoryView(history: model.history))
+            let window = NSWindow(contentViewController: host)
+            window.title = "blipsy Outage History"
+            window.styleMask = [.titled, .closable]
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
+            window.isMovableByWindowBackground = true
+            window.isReleasedWhenClosed = false
+            historyWindow = NSWindowController(window: window)
+        }
+        NSApp.activate(ignoringOtherApps: true)
+        historyWindow?.window?.center()
+        historyWindow?.showWindow(nil)
     }
 
     @objc private func openAbout() {
@@ -216,6 +248,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let window = NSWindow(contentViewController: host)
             window.title = "About blipsy"
             window.styleMask = [.titled, .closable]
+            window.titleVisibility = .hidden
+            window.titlebarAppearsTransparent = true
+            window.isMovableByWindowBackground = true
             window.isReleasedWhenClosed = false
             aboutWindow = NSWindowController(window: window)
         }

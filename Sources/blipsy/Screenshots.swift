@@ -28,7 +28,7 @@ enum Screenshots {
         let single = AppModel()
         single.loadPreview(
             statuses: [status("8.8.8.8", .connected, 18.4, 0)],
-            history: history, lastChecked: now)
+            samples: history, lastChecked: now)
         save(panelView(single), to: "\(directory)/panel-single.png")
 
         // Hero: a desktop with the menu bar and the panel dropped open beneath the icon.
@@ -43,13 +43,25 @@ enum Screenshots {
             status("8.8.8.8", .connected, 18.4, 0),
             status("1.1.1.1", .connected, 22.1, 0),
             status("https://github.com", .lossy, 143, 0.6),
-        ], history: history, lastChecked: now)
+        ], samples: history, lastChecked: now)
         save(panelView(multi), to: "\(directory)/panel-multi.png")
 
         // Settings and About use AppKit-backed controls that ImageRenderer can't
         // draw, so render static look-alikes for the screenshots.
         save(framed(settingsPreview), to: "\(directory)/settings.png")
         save(framed(aboutPreview), to: "\(directory)/about.png")
+
+        // Outage history window, seeded with a couple of days of events.
+        let events: [StatusEvent] = [
+            StatusEvent(date: now.addingTimeInterval(-30 * 3600), state: .connected),
+            StatusEvent(date: now.addingTimeInterval(-26 * 3600), state: .down),
+            StatusEvent(date: now.addingTimeInterval(-26 * 3600 + 8 * 60), state: .connected),
+            StatusEvent(date: now.addingTimeInterval(-5 * 3600), state: .lossy),
+            StatusEvent(date: now.addingTimeInterval(-5 * 3600 + 90), state: .connected),
+            StatusEvent(date: now.addingTimeInterval(-2 * 3600), state: .down),
+            StatusEvent(date: now.addingTimeInterval(-2 * 3600 + 192), state: .connected),
+        ]
+        save(framed(OutageHistoryView(history: HistoryStore(previewEvents: events), scrolls: false)), to: "\(directory)/history.png")
 
         print("wrote screenshots to \(directory)/")
     }
@@ -71,7 +83,7 @@ enum Screenshots {
                 menuBar
                 HStack(alignment: .top) {
                     Spacer()
-                    MenuPanelView(model: model, onSettings: {}, onAbout: {}, onQuit: {})
+                    MenuPanelView(model: model, onSettings: {}, onAbout: {}, onHistory: {}, onQuit: {})
                         .background(Color(nsColor: .windowBackgroundColor))
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -150,7 +162,7 @@ enum Screenshots {
                     Spacer(minLength: 20)
 
                     // Panel dropped open from the menu bar item on the right.
-                    MenuPanelView(model: model, onSettings: {}, onAbout: {}, onQuit: {})
+                    MenuPanelView(model: model, onSettings: {}, onAbout: {}, onHistory: {}, onQuit: {})
                         .background(Color(nsColor: .windowBackgroundColor))
                         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -194,6 +206,15 @@ enum Screenshots {
 
     private static var settingsPreview: some View {
         VStack(alignment: .leading, spacing: 0) {
+            BrandHeader(title: "Settings")
+            Divider()
+            settingsFormPreview
+        }
+        .frame(width: 430)
+    }
+
+    private static var settingsFormPreview: some View {
+        VStack(alignment: .leading, spacing: 0) {
             Form {
                 LabeledContent("Ping target") {
                     VStack(alignment: .leading, spacing: 4) {
@@ -228,24 +249,25 @@ enum Screenshots {
             .padding(.top, 16)
         }
         .padding(20)
-        .frame(width: 430)
     }
 
     private static var aboutPreview: some View {
-        VStack(spacing: 10) {
-            Circle().fill(Color(nsColor: .systemGreen)).frame(width: 46, height: 46)
-                .shadow(color: Color(nsColor: .systemGreen).opacity(0.4), radius: 4)
-            Text("blipsy").font(.system(size: 22, weight: .bold))
-            Text("Version 0.1.0").font(.subheadline).foregroundStyle(.secondary)
-            Text("A quiet menu bar internet connection monitor.")
-                .font(.callout).multilineTextAlignment(.center).foregroundStyle(.secondary)
-            HStack(spacing: 14) {
-                Text("View on GitHub").foregroundStyle(Color(nsColor: .linkColor))
-                Text("Report an issue").foregroundStyle(Color(nsColor: .linkColor))
-            }.font(.callout)
-            Text("Made by @moharnadreza").font(.caption).foregroundStyle(Color(nsColor: .linkColor)).padding(.top, 2)
+        VStack(alignment: .leading, spacing: 0) {
+            BrandHeader(title: "About")
+            Divider()
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Version 0.1.2").font(.system(size: 12)).foregroundStyle(.secondary)
+                Text("A quiet menu bar internet connection monitor.")
+                    .font(.system(size: 13)).foregroundStyle(.secondary)
+                HStack(spacing: 14) {
+                    Text("View on GitHub").foregroundStyle(Color(nsColor: .linkColor))
+                    Text("Report an issue").foregroundStyle(Color(nsColor: .linkColor))
+                }.font(.system(size: 12))
+                Text("Made by @moharnadreza").font(.system(size: 11)).foregroundStyle(Color(nsColor: .linkColor)).padding(.top, 2)
+            }
+            .padding(16)
         }
-        .padding(24).frame(width: 300)
+        .frame(width: 320)
     }
 
     private static func fieldBox(_ text: String, width: CGFloat?) -> some View {
@@ -292,7 +314,7 @@ enum Screenshots {
     // MARK: - View wrappers
 
     private static func panelView(_ model: AppModel) -> some View {
-        MenuPanelView(model: model, onSettings: {}, onAbout: {}, onQuit: {})
+        MenuPanelView(model: model, onSettings: {}, onAbout: {}, onHistory: {}, onQuit: {})
             .background(Color(nsColor: .windowBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous)

@@ -9,12 +9,14 @@ final class AppModel: ObservableObject {
     @Published private(set) var aggregate: ConnectionState = .unknown
     @Published private(set) var isPaused = false
     @Published private(set) var lastChecked: Date?
-    /// Rolling connectivity history for the past hour (one sample per cycle).
-    @Published private(set) var history: [Sample] = []
+    /// Rolling in-memory samples for the past-hour chart (one per cycle).
+    @Published private(set) var samples: [Sample] = []
 
     static let historyWindow: TimeInterval = 3600
 
     let settings = AppSettings()
+    /// Persistent outage history (survives relaunch).
+    let history = HistoryStore()
 
     /// Called after every cycle so the status-item controller can re-render.
     var onUpdate: ((ConnectionState, [TargetStatus]) -> Void)?
@@ -36,10 +38,10 @@ final class AppModel: ObservableObject {
     }
 
     /// Seed the model with fixed data for offscreen rendering (screenshots/previews).
-    func loadPreview(statuses: [TargetStatus], history: [Sample], lastChecked: Date) {
+    func loadPreview(statuses: [TargetStatus], samples: [Sample], lastChecked: Date) {
         self.statuses = statuses
         self.aggregate = statuses.map(\.state).max(by: { $0.severity < $1.severity }) ?? .unknown
-        self.history = history
+        self.samples = samples
         self.lastChecked = lastChecked
     }
 
@@ -165,11 +167,14 @@ final class AppModel: ObservableObject {
         if markChecked {
             let now = Date()
             lastChecked = now
-            // Record a real cycle (not the instant "checking…" reflection).
-            history.append(Sample(date: now, state: aggregate,
+            // Record a real cycle (not the instant "checking…" reflection) into the
+            // rolling in-memory buffer for the past-hour chart...
+            samples.append(Sample(date: now, state: aggregate,
                                   latencyMS: statuses.compactMap(\.latencyMS).max()))
             let cutoff = now.addingTimeInterval(-Self.historyWindow)
-            history.removeAll { $0.date < cutoff }
+            samples.removeAll { $0.date < cutoff }
+            // ...and persist state transitions for the outage history.
+            history.record(aggregate, at: now)
         }
         onUpdate?(aggregate, statuses)
     }

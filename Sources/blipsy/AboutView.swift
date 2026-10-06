@@ -11,37 +11,32 @@ struct AboutView: View {
     }
 
     var body: some View {
-        VStack(spacing: 10) {
-            Circle()
-                .fill(Color(nsColor: .systemGreen))
-                .frame(width: 46, height: 46)
-                .shadow(color: Color(nsColor: .systemGreen).opacity(0.4), radius: 4)
+        VStack(alignment: .leading, spacing: 0) {
+            BrandHeader(title: "About")
+            Divider()
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Version \(version)")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
 
-            Text("blipsy")
-                .font(.system(size: 22, weight: .bold))
+                Text("A quiet menu bar internet connection monitor.")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
 
-            Text("Version \(version)")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                HStack(spacing: 14) {
+                    Link("View on GitHub", destination: Self.repoURL)
+                    Link("Report an issue", destination: Self.issuesURL)
+                }
+                .font(.system(size: 12))
 
-            Text("A quiet menu bar internet connection monitor.")
-                .font(.callout)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
-            HStack(spacing: 14) {
-                Link("View on GitHub", destination: Self.repoURL)
-                Link("Report an issue", destination: Self.issuesURL)
+                Link("Made by @moharnadreza", destination: Self.authorURL)
+                    .font(.system(size: 11))
+                    .padding(.top, 2)
             }
-            .font(.callout)
-
-            Link("Made by @moharnadreza", destination: Self.authorURL)
-                .font(.caption)
-                .padding(.top, 2)
+            .padding(16)
         }
-        .padding(24)
-        .frame(width: 300)
+        .frame(width: 320)
         .fixedSize(horizontal: false, vertical: true)
     }
 }

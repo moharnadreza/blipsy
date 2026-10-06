@@ -7,6 +7,7 @@ struct MenuPanelView: View {
     @ObservedObject var model: AppModel
     var onSettings: () -> Void
     var onAbout: () -> Void
+    var onHistory: () -> Void
     var onQuit: () -> Void
 
     private static let clock: DateFormatter = {
@@ -36,9 +37,9 @@ struct MenuPanelView: View {
                 targetRows
             }
 
-            if !model.isPaused, !model.history.isEmpty {
+            if !model.isPaused, !model.samples.isEmpty {
                 Divider().padding(.vertical, 8)
-                HistoryView(samples: model.history, now: model.lastChecked ?? Date())
+                HistoryView(samples: model.samples, now: model.lastChecked ?? Date())
             }
 
             Divider().padding(.vertical, 8)
@@ -115,6 +116,7 @@ struct MenuPanelView: View {
         VStack(spacing: 2) {
             MenuRowButton(title: "Check Now", shortcut: "⌘R") { model.restart() }
             MenuRowButton(title: model.isPaused ? "Resume Monitoring" : "Pause Monitoring") { model.togglePause() }
+            MenuRowButton(title: "Outage History…") { onHistory() }
             MenuRowButton(title: "Settings…", shortcut: "⌘,") { onSettings() }
             MenuRowButton(title: "About blipsy") { onAbout() }
             Divider().padding(.vertical, 4)

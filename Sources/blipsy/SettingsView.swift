@@ -29,6 +29,16 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            BrandHeader(title: "Settings")
+            Divider()
+            settingsBody
+        }
+        .frame(width: 430)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var settingsBody: some View {
+        VStack(alignment: .leading, spacing: 0) {
             Form {
                 LabeledContent("Ping target") {
                     VStack(alignment: .leading, spacing: 4) {
@@ -100,8 +110,6 @@ struct SettingsView: View {
             .padding(.top, 16)
         }
         .padding(20)
-        .frame(width: 430)
-        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func save() {

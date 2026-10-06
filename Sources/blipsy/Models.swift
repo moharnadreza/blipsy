@@ -43,7 +43,7 @@ struct Target: Identifiable, Hashable, Sendable {
 }
 
 /// The three states from the spec, plus an initial "unknown".
-enum ConnectionState: Sendable {
+enum ConnectionState: String, Codable, Sendable {
     case connected   // green  - loss ≤ threshold
     case lossy       // yellow - loss > threshold, still reachable
     case down        // red    - 100% loss
