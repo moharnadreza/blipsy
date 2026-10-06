@@ -51,6 +51,15 @@ uptime.
 
 <div align="center"><img src="docs/panel-multi.png" width="320" alt="blipsy watching multiple targets" /></div>
 
+## Outage history
+
+Click the dot → **Outage History** for a log of exactly when your connection dropped.
+It records every state change to disk, so it survives relaunch, and shows a 7-day
+uptime summary plus a day-by-day list of down (red) and packet-loss (yellow) periods
+with their times and durations.
+
+<div align="center"><img src="docs/history.png" width="360" alt="blipsy outage history" /></div>
+
 ## User flow
 
 | Step |            | What happens                                              |
