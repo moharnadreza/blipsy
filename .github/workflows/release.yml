@@ -28,11 +28,16 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
         run: |
-          # Use the annotated tag's message as the changelog. `--notes-from-tag`
-          # proved unreliable on the runner, so read it explicitly.
-          NOTES="$(git tag -l --format='%(contents)' "${GITHUB_REF_NAME}")"
-          [ -z "$NOTES" ] && NOTES="See the commit history for changes."
-          gh release create "${GITHUB_REF_NAME}" build/blipsy.dmg \
-            --title "blipsy ${GITHUB_REF_NAME}" \
-            --notes "$NOTES"
+          # Read the annotated tag's message from the API as the changelog.
+          # Reading it from the checked-out git repo proved unreliable on the runner.
+          REF=$(gh api "repos/$REPO/git/ref/tags/$TAG" --jq '.object.sha + " " + .object.type')
+          SHA=${REF% *}; TYPE=${REF#* }
+          if [ "$TYPE" = "tag" ]; then
+            NOTES=$(gh api "repos/$REPO/git/tags/$SHA" --jq '.message')
+          else
+            NOTES="See the commit history for changes."
+          fi
+          gh release create "$TAG" build/blipsy.dmg --title "blipsy $TAG" --notes "$NOTES"
