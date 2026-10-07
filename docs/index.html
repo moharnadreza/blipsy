@@ -95,7 +95,7 @@
     </div>
 
     <div class="cta">
-      <a class="btn" href="https://github.com/moharnadreza/blipsy/releases/latest/download/blipsy.dmg">
+      <a class="btn" id="dl" href="https://github.com/moharnadreza/blipsy/releases/latest/download/blipsy.dmg">
         Download for macOS
       </a>
       <span class="meta"><b id="ver">v0.2.0</b> · macOS 13+ · free</span>
@@ -128,13 +128,27 @@
       .then(function(d){ if (d && d.tag_name) { document.getElementById("ver").textContent = d.tag_name; } })
       .catch(function(){});
 
+    // Count privacy-friendly events (download clicks, Homebrew copies).
+    function gcEvent(name) {
+      if (window.goatcounter && window.goatcounter.count) {
+        window.goatcounter.count({ path: name, title: name, event: true });
+      }
+    }
+    var dl = document.getElementById("dl");
+    if (dl) dl.addEventListener("click", function(){ gcEvent("download-dmg"); });
+
     // Copy the Homebrew command.
     document.getElementById("copy").addEventListener("click", function(){
       var cmd = document.getElementById("brewcmd").textContent;
       navigator.clipboard.writeText(cmd).then(function(){
         var b = document.getElementById("copy"); b.textContent = "Copied"; setTimeout(function(){ b.textContent = "Copy"; }, 1400);
       });
+      gcEvent("brew-copy");
     });
   </script>
+
+  <!-- GoatCounter: privacy-friendly, cookieless analytics -->
+  <script data-goatcounter="https://blipsy.goatcounter.com/count"
+          async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
