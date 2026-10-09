@@ -49,7 +49,9 @@ struct OutageHistoryView: View {
     }
 
     private func list(_ groups: [DayGroup], now: Date) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        // Lazy so only the visible day sections are built; a plain VStack renders
+        // every outage up front and makes scrolling laggy with a long history.
+        LazyVStack(alignment: .leading, spacing: 20) {
             ForEach(groups, id: \.day) { group in
                 section(group, now: now)
             }
